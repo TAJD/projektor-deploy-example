@@ -7,9 +7,15 @@ pre-built release artifact and deploys it with `wrangler`.
 Fork/copy this repo, fill in your Cloudflare resource IDs, set three secrets, and
 every push to `main` deploys.
 
+> **Zero-config / AI-agent deploy:** prefer no manual resource setup? `deploy-auto.sh`
+> lets wrangler auto-provision D1/KV/R2 for you (no IDs to copy) — see
+> [AGENT-DEPLOY.md](./AGENT-DEPLOY.md). The flow below is the manual / CI path.
+
 ```
 this repo
 ├── deploy.sh                     # fetch release → migrate → deploy (local or CI)
+├── deploy-auto.sh                # zero-config: auto-provision D1/KV/R2 (agent path)
+├── AGENT-DEPLOY.md               # how an AI agent deploys with auto-provisioning
 ├── projektor.version             # the release you're pinned to (e.g. v1.2.0)
 ├── wrangler.toml.example         # illustrative config (the authoritative copy
 │                                 #   ships inside each release as wrangler.example.toml)
