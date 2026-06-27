@@ -1,0 +1,35 @@
+name: Deploy to Cloudflare
+
+# Deploys the pinned projektor release (see ./projektor.version) on every push to
+# main, or on demand. Bump projektor.version and push to roll out a new version.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy projektor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install wrangler
+        run: npm install
+
+      - name: Fetch release + migrate + deploy
+        run: ./deploy.sh
+        env:
+          # Cloudflare auth (see README for the correct token scopes — must include D1).
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # The projektor repo to pull the release from.
+          PROJEKTOR_REPO: REPLACE_WITH_YOUR_GITHUB_USER/projektor
+          # gh auth to download the release asset.
+          #  - private projektor: set PROJEKTOR_RELEASE_PAT (Contents: Read on that repo).
+          #  - public projektor:  delete the secret line and use ${{ github.token }}.
+          GH_TOKEN: ${{ secrets.PROJEKTOR_RELEASE_PAT }}

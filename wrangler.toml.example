@@ -1,0 +1,52 @@
+# Illustrative config. The AUTHORITATIVE template ships inside every release as
+# vendor/wrangler.example.toml — `deploy.sh` copies that to ./wrangler.toml on first
+# run. This file is here so you can see the shape without downloading anything.
+# Copy to ./wrangler.toml and fill in the REPLACE_ values.
+
+name = "projektor"
+main = "./vendor/worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]   # required: the bundled worker uses node:stream / node:events
+
+# ─── Static Assets (pre-built frontend, shipped in the artifact) ───────────────
+[assets]
+directory = "./vendor/web"
+binding = "ASSETS"
+run_worker_first = ["/api/*", "/mcp/*"]
+
+# ─── D1 Database ───────────────────────────────────────────────
+# Create with: wrangler d1 create projektor
+[[d1_databases]]
+binding = "DB"
+database_name = "projektor"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+migrations_dir = "./vendor/migrations"
+
+# ─── KV Namespace ──────────────────────────────────────────────
+# Create with: wrangler kv namespace create projektor
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# ─── R2 Bucket ─────────────────────────────────────────────────
+# Create with: wrangler r2 bucket create projektor-files
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "projektor-files"
+
+# ─── Static vars (non-secret) ──────────────────────────────────
+[vars]
+ENVIRONMENT = "production"
+CF_ACCESS_TEAM_DOMAIN = "REPLACE_WITH_YOUR_TEAM.cloudflareaccess.com"
+CF_ACCESS_AUDIENCE   = "REPLACE_WITH_YOUR_CF_ACCESS_AUDIENCE_TAG"
+
+# ─── Login provisioning ────────────────────────────────────────
+# ADMIN_EMAILS → owners (first login creates the default workspace).
+# Everyone else CF Access admits joins as AUTO_JOIN_ROLE.
+ADMIN_EMAILS = "REPLACE_WITH_YOUR_ADMIN_EMAILS_COMMA_SEPARATED"
+DEFAULT_WORKSPACE_SLUG = "projektor"
+DEFAULT_WORKSPACE_NAME = "Projektor"
+AUTO_JOIN_ROLE = "viewer"
+
+# ─── Secrets (set ONCE; persist across deploys) ────────────────
+#   wrangler secret put JWT_SECRET

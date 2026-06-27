@@ -1,0 +1,11 @@
+{
+  "name": "projektor-deploy-example",
+  "private": true,
+  "description": "Config-only deploy of projektor from a release artifact",
+  "scripts": {
+    "deploy": "./deploy.sh"
+  },
+  "devDependencies": {
+    "wrangler": "^4.103.0"
+  }
+}
