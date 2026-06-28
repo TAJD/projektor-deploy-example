@@ -93,7 +93,9 @@ ENVIRONMENT = "production"
 ADMIN_EMAILS = "$ADMIN_EMAILS"
 DEFAULT_WORKSPACE_SLUG = "projektor"
 DEFAULT_WORKSPACE_NAME = "Projektor"
-AUTO_JOIN_ROLE = "viewer"
+# Invite-only by default: only ADMIN_EMAILS become owners; everyone else CF Access
+# admits must be invited. To auto-join admitted users instead, add e.g.
+#   AUTO_JOIN_ROLE = "viewer"
 EOF
 
   # CF Access is only needed for browser login (read at request time, not boot).
