@@ -71,11 +71,13 @@ ADMIN_EMAILS=you@example.com ./deploy-auto.sh
 
 ## After deploy
 
-- The Worker is live and serving. **Browser login** additionally needs a Cloudflare
-  Access application; set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUDIENCE` (env or in
-  `wrangler.toml`) and re-deploy. (These are read at request time, so the deploy and
-  the API itself work without them.)
-- To have the agent operate the instance over MCP, see the sibling flow (PROJ-200).
+The Worker is live and serving, but no one can log in until you configure Cloudflare
+Access. That — plus first login, minting a token, and connecting an agent over MCP —
+is the human handoff: **see [CONFIGURE.md](./CONFIGURE.md)**.
+
+(projektor has no production bootstrap endpoint by design, so this step is human-gated:
+an agent provisions the infrastructure, a human configures access and mints the first
+token, then the agent can operate it.)
 
 ## How this differs from `deploy.sh`
 

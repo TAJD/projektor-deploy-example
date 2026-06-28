@@ -16,6 +16,7 @@ this repo
 ├── deploy.sh                     # fetch release → migrate → deploy (local or CI)
 ├── deploy-auto.sh                # zero-config: auto-provision D1/KV/R2 (agent path)
 ├── AGENT-DEPLOY.md               # how an AI agent deploys with auto-provisioning
+├── CONFIGURE.md                  # after deploy: set up Access, log in, connect an agent
 ├── projektor.version             # the release you're pinned to (e.g. v1.2.0)
 ├── wrangler.toml.example         # illustrative config (the authoritative copy
 │                                 #   ships inside each release as wrangler.example.toml)
