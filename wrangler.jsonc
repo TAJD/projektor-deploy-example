@@ -1,0 +1,57 @@
+// Button / one-click config for the "Deploy to Cloudflare" button.
+//
+// This is BINDING-ONLY — it declares D1/KV/R2 with no resource IDs. When you click
+// the deploy button, Cloudflare reads this file, provisions the three resources by
+// name, fills in the IDs for you, and connects Workers Builds to build + deploy.
+//
+// The Worker itself is NOT in this repo — `build.command` (cf-build.sh) downloads
+// the pinned projektor release (./projektor.version) into ./vendor before deploy.
+//
+// Local / CI deploys do NOT use this file — deploy.sh and deploy-auto.sh generate
+// and pass their own `wrangler.toml` via `--config`. This file exists solely so a
+// fresh button-clone has a committed config to provision from (wrangler.toml is
+// gitignored, so it never lands in the clone).
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "projektor",
+	"main": "./vendor/worker.js",
+	"compatibility_date": "2024-09-23",
+	"compatibility_flags": ["nodejs_compat"],
+	"build": {
+		"command": "bash ./cf-build.sh"
+	},
+	"assets": {
+		"directory": "./vendor/web",
+		"binding": "ASSETS",
+		"run_worker_first": ["/api/*", "/mcp/*"]
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "projektor",
+			"migrations_dir": "./vendor/migrations"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "KV"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "R2",
+			"bucket_name": "projektor-files"
+		}
+	],
+	"vars": {
+		"ENVIRONMENT": "production",
+		// Fill this in on the button's setup page — the first of these emails to log
+		// in (through Cloudflare Access) becomes the workspace owner.
+		"ADMIN_EMAILS": "you@example.com",
+		"DEFAULT_WORKSPACE_SLUG": "projektor",
+		"DEFAULT_WORKSPACE_NAME": "Projektor"
+		// Invite-only by default: only ADMIN_EMAILS become owners; everyone else that
+		// Cloudflare Access admits must be invited. To auto-join admitted users, add
+		// AUTO_JOIN_ROLE = "viewer" (or member/admin).
+	}
+}
