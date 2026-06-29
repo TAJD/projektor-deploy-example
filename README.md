@@ -4,12 +4,38 @@ A minimal, config-only repo that deploys [projektor](https://github.com/REPLACE_
 to your own Cloudflare account. **No source code, no build step** — it downloads a
 pre-built release artifact and deploys it with `wrangler`.
 
-Fork/copy this repo, fill in your Cloudflare resource IDs, set three secrets, and
-every push to `main` deploys.
+Three ways in, easiest first:
+
+1. **One click** — the Deploy to Cloudflare button below. Cloudflare clones this repo
+   into your account, provisions D1/KV/R2, and builds + deploys.
+2. **One command / one prompt** — `./deploy-auto.sh` (or hand the repo to an AI agent);
+   wrangler auto-provisions everything, no IDs to copy. See [AGENT-DEPLOY.md](./AGENT-DEPLOY.md).
+3. **Manual / CI** — provision the resources yourself and deploy on every push. The flow
+   further down.
+
+After any of them, **configure Cloudflare Access** so you can log in — see [CONFIGURE.md](./CONFIGURE.md).
+
+## Deploy with one click
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/TAJD/projektor-deploy-example)
+
+Cloudflare reads [`wrangler.jsonc`](./wrangler.jsonc) (binding-only — no resource IDs),
+provisions a D1 database, a KV namespace, and an R2 bucket, then runs
+[`cf-build.sh`](./cf-build.sh): it downloads the pinned projektor release
+(`projektor.version`), deploys the Worker, applies D1 migrations, and generates
+`JWT_SECRET`. Fill in `ADMIN_EMAILS` on the setup page; that email becomes the owner
+once you log in.
+
+> The one-click build needs wrangler to be authenticated in Cloudflare's build
+> environment (Workers Builds provides this). If the build step can't deploy/migrate,
+> use the equivalent local path instead: clone this repo and run `./deploy-auto.sh`.
 
 ```
 this repo
 ├── deploy.sh                     # fetch release → migrate → deploy (local or CI)
+├── deploy-auto.sh                # zero-config: auto-provision D1/KV/R2 (agent path)
+├── AGENT-DEPLOY.md               # how an AI agent deploys with auto-provisioning
+├── CONFIGURE.md                  # after deploy: set up Access, log in, connect an agent
 ├── projektor.version             # the release you're pinned to (e.g. v1.2.0)
 ├── wrangler.toml.example         # illustrative config (the authoritative copy
 │                                 #   ships inside each release as wrangler.example.toml)
