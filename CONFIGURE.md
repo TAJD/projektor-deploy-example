@@ -76,6 +76,23 @@ claude mcp add --transport http \
 Run it, and the agent can create projects, issues, and wiki pages over MCP — the same
 tools projektor's own development is tracked with.
 
+## 5. Optional: route workspaces by subdomain
+
+By default, every request must carry an `X-Workspace-Slug` header (the `claude mcp add`
+command above, and the browser SPA, already do this for you). If you've provisioned real
+workspace subdomains in DNS (e.g. `team.example.com` routes to the `team` workspace), you
+can opt into resolving the workspace from the `Host` header's leading label instead:
+
+```toml
+[vars]
+# ...existing vars...
+WORKSPACE_SUBDOMAIN_ROUTING = "true"
+```
+
+Leave this unset for a single custom domain or the `*.workers.dev` default — there, the
+`Host` header's leading label is a CDN/proxy artifact, not a real tenant signal, and
+enabling this would misroute requests.
+
 ---
 
 **The full path:** an agent provisions the infrastructure → a human configures Access

@@ -48,5 +48,9 @@ DEFAULT_WORKSPACE_SLUG = "projektor"
 DEFAULT_WORKSPACE_NAME = "Projektor"
 AUTO_JOIN_ROLE = "viewer"
 
+# Off by default: resolve the workspace from the X-Workspace-Slug header only.
+# Set to "true" only if you've provisioned real workspace subdomains in DNS.
+# WORKSPACE_SUBDOMAIN_ROUTING = "true"
+
 # ─── Secrets (set ONCE; persist across deploys) ────────────────
 #   wrangler secret put JWT_SECRET

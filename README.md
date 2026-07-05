@@ -1,6 +1,6 @@
 # projektor deploy (example)
 
-A minimal, config-only repo that deploys [projektor](https://github.com/REPLACE_WITH_YOUR_GITHUB_USER/projektor)
+A minimal, config-only repo that deploys [projektor](https://github.com/TAJD/projektor)
 to your own Cloudflare account. **No source code, no build step** — it downloads a
 pre-built release artifact and deploys it with `wrangler`.
 
