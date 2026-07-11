@@ -40,6 +40,7 @@ this repo
 ├── wrangler.toml.example         # illustrative config (the authoritative copy
 │                                 #   ships inside each release as wrangler.example.toml)
 ├── wrangler.toml                 # YOUR config — created on first deploy, fill in IDs (gitignored)
+├── wrangler.demo.toml            # committed, binding-only config CI deploys to projektor-demo
 ├── package.json                  # pins wrangler
 ├── vendor/                       # extracted release artifact (gitignored)
 └── .github/workflows/deploy.yml  # automatic deploy on push to main

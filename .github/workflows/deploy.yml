@@ -24,14 +24,32 @@ jobs:
       - name: Install wrangler
         run: npm install
 
-      - name: Fetch release + migrate + deploy
-        run: ./deploy.sh
+      - name: Fetch release
+        run: |
+          set -euo pipefail
+          VERSION="$(cat projektor.version)"
+          echo "==> Fetching projektor $VERSION from $PROJEKTOR_REPO"
+          rm -rf vendor && mkdir -p vendor
+          TMP="$(mktemp -d)"
+          gh release download "$VERSION" -R "$PROJEKTOR_REPO" -p 'projektor-*.tar.gz' -D "$TMP"
+          tar -xzf "$TMP"/projektor-*.tar.gz -C vendor
+          rm -rf "$TMP"
         env:
-          # Cloudflare auth (see README for the correct token scopes — must include D1).
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # The projektor repo to pull the release from.
           PROJEKTOR_REPO: TAJD/projektor
           # projektor is public, so the default job token (read-only, scoped to
           # this run) is enough to fetch the release asset — no PAT needed.
           GH_TOKEN: ${{ github.token }}
+
+      - name: Migrate + deploy
+        # wrangler.demo.toml is a committed, binding-only config for the
+        # projektor-demo instance (see PROJ-284) — unlike deploy.sh, it needs no
+        # gitignored wrangler.toml bootstrap step, so CI can run non-interactively.
+        run: |
+          set -euo pipefail
+          npx wrangler d1 migrations apply DB --remote --config wrangler.demo.toml
+          npx wrangler deploy --config wrangler.demo.toml
+        env:
+          # Cloudflare auth (see README for the correct token scopes — must include D1).
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

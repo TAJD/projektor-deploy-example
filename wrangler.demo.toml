@@ -1,0 +1,35 @@
+# Committed config for the live projektor-demo instance (see PROJ-284). Unlike
+# wrangler.toml (gitignored — that's YOUR private config), this one is
+# binding-only and safe to commit: no resource IDs, no secrets. wrangler
+# resolves the existing projektor-demo D1/KV/R2 by name on every deploy.
+#
+# Used by .github/workflows/deploy.yml for CI, and only for the demo instance.
+# The gitignored wrangler.toml + deploy.sh/deploy-auto.sh path (for end users
+# deploying their own instance) is untouched.
+name = "projektor-demo"
+main = "./vendor/worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./vendor/web"
+binding = "ASSETS"
+run_worker_first = ["/api/*", "/mcp/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "projektor-demo"
+migrations_dir = "./vendor/migrations"
+
+[[kv_namespaces]]
+binding = "KV"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "projektor-demo-files"
+
+[vars]
+ENVIRONMENT = "production"
+ADMIN_EMAILS = "tajdickson@protonmail.com"
+DEFAULT_WORKSPACE_SLUG = "projektor"
+DEFAULT_WORKSPACE_NAME = "Projektor"
