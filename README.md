@@ -96,8 +96,12 @@ PROJEKTOR_REPO=REPLACE_WITH_YOUR_GITHUB_USER/projektor ./deploy.sh
 
 ## Automatic deploys (GitHub Actions)
 
-`deploy.yml` runs `deploy.sh` on every push to `main`. Configure these **repository
-secrets** (Settings → Secrets and variables → Actions):
+`deploy.yml` deploys the live `projektor-demo` instance (via the committed,
+binding-only `wrangler.demo.toml`) on every push to `main`, then hits the
+deployed URL and fails the job if it doesn't return 2xx. It also runs on PRs
+against `main` — as a dry-run only, needing no Cloudflare auth — so it can be a
+required check gating merges (branch ruleset on `main`). Configure these
+**repository secrets** (Settings → Secrets and variables → Actions):
 
 | Secret | How to get it |
 |--------|---------------|
@@ -106,6 +110,9 @@ secrets** (Settings → Secrets and variables → Actions):
 | `PROJEKTOR_RELEASE_PAT` | only if `projektor` is a **private** repo — a fine-grained PAT with `Contents: Read` on it, so CI can download the release. For a public projektor, delete this and let the workflow use the built-in token. |
 
 To roll out a new projektor version: bump `projektor.version`, commit, push. CI deploys it.
+
+If you deploy your own instance instead of using the demo config, point `deploy.yml`
+at your own `wrangler.toml`/resource names, or adapt `deploy.sh`'s manual flow.
 
 ### The Cloudflare API token (get this right)
 
