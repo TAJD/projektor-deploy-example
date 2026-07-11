@@ -33,3 +33,6 @@ ENVIRONMENT = "production"
 ADMIN_EMAILS = "tajdickson@protonmail.com"
 DEFAULT_WORKSPACE_SLUG = "projektor"
 DEFAULT_WORKSPACE_NAME = "Projektor"
+# PROJ-373: this demo has no CF Access configured, so anonymous visitors get a
+# shared read-only "viewer" of the default workspace instead of a 401.
+PUBLIC_READ_ONLY = "true"
