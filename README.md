@@ -147,3 +147,4 @@ If `d1 list` fails, the token is missing the D1 permission.
 - [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) (pinned in `package.json`; `npm install` then it's available via `npx`)
 - [`gh`](https://cli.github.com/) (GitHub CLI) — to download the release artifact
 - `bash`, `tar`
+
