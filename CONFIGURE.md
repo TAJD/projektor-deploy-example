@@ -32,7 +32,8 @@ Either way, collect the two values projektor needs:
 
 ## 2. Wire Access into projektor and re-deploy
 
-Add both to your `wrangler.toml` `[vars]` and re-deploy:
+**If you have a local clone** (you ran `deploy.sh`/`deploy-auto.sh` yourself): add both
+to your `wrangler.toml` `[vars]` and re-deploy:
 
 ```toml
 [vars]
@@ -42,13 +43,23 @@ CF_ACCESS_AUDIENCE = "<your-aud-tag>"
 ```
 
 ```bash
-PROJEKTOR_REPO=you/projektor ADMIN_EMAILS=you@example.com ./deploy-auto.sh
+PROJEKTOR_REPO=TAJD/projektor ADMIN_EMAILS=you@example.com ./deploy-auto.sh
 ```
 
 > `deploy-auto.sh` won't overwrite an existing `wrangler.toml`, so edit it directly
 > (or set `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUDIENCE` in the env and delete
 > `wrangler.toml` to regenerate it with them). These vars are read at request time,
 > so the API and static site already work without them — only login needs them.
+
+**If you used the "Deploy to Cloudflare" one-click button**: you have no local
+`wrangler.toml` - your config lives in `wrangler.jsonc` in the repo Cloudflare cloned
+for you. Either:
+
+- Set the vars directly on the Worker: **Workers & Pages → your Worker → Settings →
+  Variables and Secrets → Add** for both `CF_ACCESS_TEAM_DOMAIN` and
+  `CF_ACCESS_AUDIENCE`, then save (this redeploys automatically, no rebuild needed); or
+- Clone the auto-created repo, add both vars to the `vars` block in `wrangler.jsonc`,
+  commit, and push - Cloudflare Workers Builds picks up the push and redeploys.
 
 ## 3. First login → you become owner
 

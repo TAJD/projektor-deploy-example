@@ -4,10 +4,14 @@ A minimal, config-only repo that deploys [projektor](https://github.com/TAJD/pro
 to your own Cloudflare account. **No source code, no build step** — it downloads a
 pre-built release artifact and deploys it with `wrangler`.
 
+Want to see it running first? Check out the
+[live demo](https://projektor-demo.tajdickson.workers.dev).
+
 Three ways in, easiest first:
 
 1. **One click** — the Deploy to Cloudflare button below. Cloudflare clones this repo
-   into your account, provisions D1/KV/R2, and builds + deploys.
+   into your account, provisions D1/KV/R2, and downloads + deploys the release artifact
+   (no build step).
 2. **One command / one prompt** — `./deploy-auto.sh` (or hand the repo to an AI agent);
    wrangler auto-provisions everything, no IDs to copy. See [AGENT-DEPLOY.md](./AGENT-DEPLOY.md).
 3. **Manual / CI** — provision the resources yourself and deploy on every push. The flow
@@ -74,7 +78,8 @@ wrangler r2 bucket create projektor-files
 
 ```bash
 # Pin a version, then run deploy once to fetch the artifact + scaffold wrangler.toml:
-echo "v1.0.0" > projektor.version          # use a real release tag
+gh release list -R TAJD/projektor          # find a real tag - releases are all v0.x so far
+echo "v0.3.7" > projektor.version          # pin whichever tag you picked
 PROJEKTOR_REPO=REPLACE_WITH_YOUR_GITHUB_USER/projektor ./deploy.sh
 # -> creates wrangler.toml from the template; edit it and fill the REPLACE_ values
 #    (D1 database_id, KV id, CF Access domain/audience, ADMIN_EMAILS), then re-run.
@@ -100,8 +105,10 @@ PROJEKTOR_REPO=REPLACE_WITH_YOUR_GITHUB_USER/projektor ./deploy.sh
 binding-only `wrangler.demo.toml`) on every push to `main`, then hits the
 deployed URL and fails the job if it doesn't return 2xx. It also runs on PRs
 against `main` — as a dry-run only, needing no Cloudflare auth — so it can be a
-required check gating merges (branch ruleset on `main`). Configure these
-**repository secrets** (Settings → Secrets and variables → Actions):
+required check gating merges (branch ruleset on `main`; see
+[CONTRIBUTING.md](./CONTRIBUTING.md) for what that ruleset does and its known
+limitation). Configure these **repository secrets** (Settings → Secrets and
+variables → Actions):
 
 | Secret | How to get it |
 |--------|---------------|
@@ -111,8 +118,11 @@ required check gating merges (branch ruleset on `main`). Configure these
 
 To roll out a new projektor version: bump `projektor.version`, commit, push. CI deploys it.
 
-If you deploy your own instance instead of using the demo config, point `deploy.yml`
-at your own `wrangler.toml`/resource names, or adapt `deploy.sh`'s manual flow.
+If you deploy your own instance instead of using the demo config, `deploy.yml` won't
+work as-is: `wrangler.toml` is gitignored by design (it holds your resource IDs), so CI
+has nothing to deploy from on a fresh checkout. Either commit your own binding-only
+toml — mirroring `wrangler.demo.toml` — and point `deploy.yml` at it, or skip the
+GitHub Actions path entirely and use `deploy.sh`'s manual flow locally.
 
 ### The Cloudflare API token (get this right)
 

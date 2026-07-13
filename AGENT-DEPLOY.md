@@ -38,7 +38,7 @@ Point the agent at this repo and say:
 ```bash
 echo "v0.2.3" > projektor.version                 # pin a real release tag
 
-PROJEKTOR_REPO=you/projektor \
+PROJEKTOR_REPO=TAJD/projektor \
 ADMIN_EMAILS=you@example.com \
   ./deploy-auto.sh
 ```
@@ -65,7 +65,7 @@ touching the existing resources — it names the Worker, D1 database, and R2 buc
 (`<name>` / `<name>` / `<name>-files`):
 
 ```bash
-PROJEKTOR_NAME=projektor-demo PROJEKTOR_REPO=you/projektor \
+PROJEKTOR_NAME=projektor-demo PROJEKTOR_REPO=TAJD/projektor \
 ADMIN_EMAILS=you@example.com ./deploy-auto.sh
 ```
 
