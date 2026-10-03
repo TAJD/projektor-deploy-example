@@ -68,29 +68,36 @@ is in `ADMIN_EMAILS`, projektor makes you the **owner** and auto-creates the def
 workspace (`DEFAULT_WORKSPACE_SLUG` / `DEFAULT_WORKSPACE_NAME`). Anyone else Access
 admits is **invite-only** unless you opted into `AUTO_JOIN_ROLE`.
 
-## 4. Mint a token and connect an agent
+## 4. Connect Claude
 
-In the app: **Settings → Tokens**. Create a token (name + scopes, e.g. read/write —
-owners/admins only). The token (prefixed `pk_`) is shown **once**, and right beside it
-the page shows a ready-to-run **`claude mcp add` command with the token and workspace
-already filled in** — copy that.
+The canonical, always-current instructions are on one page:
+**[Connect Claude](https://tajd.github.io/projektor/agents/mcp-connection/)**. The short version
+for an instance deployed from this repo:
 
-It looks like:
+- **Sign-in (OAuth connector) does not work on this config yet.** The generated
+  `wrangler.jsonc` / `wrangler.toml` has no `OAUTH_KV` binding, no `/.well-known/*` in
+  `run_worker_first`, and neither the `global_fetch_strictly_public` nor the
+  `cache_option_enabled` compatibility flag, and `projektor.version` pins v0.3.7,
+  which predates the connector (added in v0.6.1). Behind Cloudflare Access, sign-in also needs `/.well-known/*` and
+  `/oauth/token` exempted from Access, with `/oauth/authorize` kept protected. See
+  [Deploying, Cloudflare Access carve-outs for OAuth](https://tajd.github.io/projektor/guides/deploying/#6-cloudflare-access-carve-outs-for-oauth).
+- **Until then, use a workspace API token.** An owner or admin mints one in the app (from a
+  signed-in browser session; agents cannot mint tokens). The token starts with `pk_` and is
+  shown once. Then:
 
 ```bash
-claude mcp add --transport http \
-  --header "Authorization: Bearer pk_…" \
-  --header "X-Workspace-Slug: <your-workspace-slug>" \
-  projektor "https://<your-host>/mcp/<workspace-id>"
+claude mcp add --transport http projektor "https://<your-host>/mcp/<workspace-id>" \
+  --header "Authorization: Bearer pk_<token>"
 ```
 
-Run it, and the agent can create projects, issues, and wiki pages over MCP — the same
-tools projektor's own development is tracked with.
+Put the name and URL **before** `--header`: current Claude Code treats `--header` as
+taking several values, so a command that puts the headers first fails with
+`missing required argument 'name'`. `<workspace-id>` is the workspace UUID, not the slug.
 
 ## 5. Optional: route workspaces by subdomain
 
-By default, every request must carry an `X-Workspace-Slug` header (the `claude mcp add`
-command above, and the browser SPA, already do this for you). If you've provisioned real
+By default, every `/api/*` request must carry an `X-Workspace-Slug` header (the browser SPA
+sends it for you; the MCP endpoint doesn't need it, because the workspace UUID is in its URL). If you've provisioned real
 workspace subdomains in DNS (e.g. `team.example.com` routes to the `team` workspace), you
 can opt into resolving the workspace from the `Host` header's leading label instead:
 
@@ -107,4 +114,5 @@ enabling this would misroute requests.
 ---
 
 **The full path:** an agent provisions the infrastructure → a human configures Access
-and mints a token → the agent (or human) operates it.
+and mints a token → the agent (or human) operates it. Connecting agents:
+[Connect Claude](https://tajd.github.io/projektor/agents/mcp-connection/).
