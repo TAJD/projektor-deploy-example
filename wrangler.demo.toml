@@ -9,12 +9,18 @@
 name = "projektor-demo"
 main = "./vendor/worker.js"
 compatibility_date = "2024-09-23"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public", "cache_option_enabled"]
+
+[placement]
+mode = "smart"
 
 [assets]
 directory = "./vendor/web"
 binding = "ASSETS"
-run_worker_first = ["/api/*", "/mcp/*"]
+run_worker_first = ["/api/*", "/mcp/*", "/wiki", "/.well-known/*"]
+
+[triggers]
+crons = ["0 3 * * *"]
 
 [[d1_databases]]
 binding = "DB"
@@ -24,9 +30,24 @@ migrations_dir = "./vendor/migrations"
 [[kv_namespaces]]
 binding = "KV"
 
+[[kv_namespaces]]
+binding = "OAUTH_KV"
+
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "projektor-demo-files"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["WorkspaceHub"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RateLimiter"]
 
 [vars]
 ENVIRONMENT = "production"

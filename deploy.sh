@@ -21,7 +21,8 @@ VERSION="${PROJEKTOR_VERSION:-$(cat projektor.version 2>/dev/null || true)}"
 echo "==> Fetching projektor $VERSION from $REPO"
 rm -rf vendor && mkdir -p vendor
 TMP="$(mktemp -d)"
-gh release download "$VERSION" -R "$REPO" -p 'projektor-*.tar.gz' -D "$TMP"
+TAG="$VERSION"; [ "$VERSION" = "latest" ] && TAG=""
+gh release download $TAG -R "$REPO" -p 'projektor-*.tar.gz' -D "$TMP"
 tar -xzf "$TMP"/projektor-*.tar.gz -C vendor
 rm -rf "$TMP"
 
