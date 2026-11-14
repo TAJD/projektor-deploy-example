@@ -29,14 +29,13 @@ every command — including `d1 migrations apply` — so you never paste an ID.
 
 Point the agent at this repo and say:
 
-> Deploy projektor to my Cloudflare account. Pin the latest release in
-> `projektor.version`, then run `deploy-auto.sh` with `PROJEKTOR_REPO` set to my
+> Deploy projektor to my Cloudflare account. Run `deploy-auto.sh` with `PROJEKTOR_REPO` set to my
 > projektor repo and `ADMIN_EMAILS` set to my email. Report the deployed URL.
 
 ## What the agent runs
 
 ```bash
-echo "v0.2.3" > projektor.version                 # pin a real release tag
+# projektor.version is "latest" by default; write a tag there to pin one.
 
 PROJEKTOR_REPO=TAJD/projektor \
 ADMIN_EMAILS=you@example.com \

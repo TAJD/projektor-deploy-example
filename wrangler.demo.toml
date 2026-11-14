@@ -1,20 +1,26 @@
-# Committed config for the live projektor-demo instance (see PROJ-284). Unlike
-# wrangler.toml (gitignored — that's YOUR private config), this one is
-# binding-only and safe to commit: no resource IDs, no secrets. wrangler
-# resolves the existing projektor-demo D1/KV/R2 by name on every deploy.
+# Example of a committed, binding-only config for CI deploys (PROJ-284). Unlike
+# wrangler.toml (gitignored — that's YOUR private config), this one is safe to
+# commit: no resource IDs, no secrets. wrangler resolves D1/KV/R2 by name.
 #
-# Used by .github/workflows/deploy.yml for CI, and only for the demo instance.
+# deploy.yml dry-runs it on every run. It is deployed only if the DEPLOY_CONFIG
+# repository variable points at it; the live demo is deployed from elsewhere.
 # The gitignored wrangler.toml + deploy.sh/deploy-auto.sh path (for end users
 # deploying their own instance) is untouched.
 name = "projektor-demo"
 main = "./vendor/worker.js"
 compatibility_date = "2024-09-23"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public", "cache_option_enabled"]
+
+[placement]
+mode = "smart"
 
 [assets]
 directory = "./vendor/web"
 binding = "ASSETS"
-run_worker_first = ["/api/*", "/mcp/*"]
+run_worker_first = ["/api/*", "/mcp/*", "/wiki", "/.well-known/*"]
+
+[triggers]
+crons = ["0 3 * * *"]
 
 [[d1_databases]]
 binding = "DB"
@@ -24,9 +30,24 @@ migrations_dir = "./vendor/migrations"
 [[kv_namespaces]]
 binding = "KV"
 
+[[kv_namespaces]]
+binding = "OAUTH_KV"
+
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "projektor-demo-files"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["WorkspaceHub"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RateLimiter"]
 
 [vars]
 ENVIRONMENT = "production"

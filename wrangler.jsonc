@@ -16,15 +16,22 @@
 	"name": "projektor",
 	"main": "./vendor/worker.js",
 	"compatibility_date": "2024-09-23",
-	"compatibility_flags": ["nodejs_compat"],
+	// Keep in step with the release's vendor/wrangler.example.toml; CI fails on drift
+	// (scripts/wrangler-config.mjs check). nodejs_compat is required by the bundle; the
+	// other two are needed for the OAuth connector's client metadata fetch (PROJ-656).
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public", "cache_option_enabled"],
+	"placement": { "mode": "smart" },
 	"build": {
 		"command": "bash ./cf-build.sh"
 	},
 	"assets": {
 		"directory": "./vendor/web",
 		"binding": "ASSETS",
-		"run_worker_first": ["/api/*", "/mcp/*"]
+		// /.well-known/* serves OAuth discovery; without it every MCP sign-in 404s.
+		"run_worker_first": ["/api/*", "/mcp/*", "/wiki", "/.well-known/*"]
 	},
+	// Daily sweep for the 30-day wiki trash purge (UTC).
+	"triggers": { "crons": ["0 3 * * *"] },
 	"d1_databases": [
 		{
 			"binding": "DB",
@@ -35,6 +42,11 @@
 	"kv_namespaces": [
 		{
 			"binding": "KV"
+		},
+		// OAuth grants and tokens for the Claude connector. A separate namespace so that
+		// clearing the cache namespace never revokes everyone's connectors.
+		{
+			"binding": "OAUTH_KV"
 		}
 	],
 	"r2_buckets": [
@@ -42,6 +54,16 @@
 			"binding": "R2",
 			"bucket_name": "projektor-files"
 		}
+	],
+	// Request rate limiting (required: without it /health returns 503).
+	"durable_objects": {
+		"bindings": [{ "name": "RATE_LIMITER", "class_name": "RateLimiter" }]
+	},
+	// Keep both tags, in this order, even though WorkspaceHub has no binding here: the
+	// class ships in every build and wrangler only applies tags after the last one deployed.
+	"migrations": [
+		{ "tag": "v1", "new_sqlite_classes": ["WorkspaceHub"] },
+		{ "tag": "v2", "new_sqlite_classes": ["RateLimiter"] }
 	],
 	"vars": {
 		"ENVIRONMENT": "production",

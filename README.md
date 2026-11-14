@@ -24,9 +24,9 @@ After any of them, **configure Cloudflare Access** so you can log in — see [CO
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/TAJD/projektor-deploy-example)
 
 Cloudflare reads [`wrangler.jsonc`](./wrangler.jsonc) (binding-only — no resource IDs),
-provisions a D1 database, a KV namespace, and an R2 bucket, then runs
-[`cf-build.sh`](./cf-build.sh): it downloads the pinned projektor release
-(`projektor.version`), deploys the Worker, applies D1 migrations, and generates
+provisions a D1 database, two KV namespaces (cache and OAuth), an R2 bucket and the
+rate-limiter Durable Object, then runs [`cf-build.sh`](./cf-build.sh): it downloads the
+projektor release named in `projektor.version` (`latest` by default), deploys the Worker, applies D1 migrations, and generates
 `JWT_SECRET`. Fill in `ADMIN_EMAILS` on the setup page; that email becomes the owner
 once you log in.
 
@@ -40,7 +40,8 @@ this repo
 ├── deploy-auto.sh                # zero-config: auto-provision D1/KV/R2 (agent path)
 ├── AGENT-DEPLOY.md               # how an AI agent deploys with auto-provisioning
 ├── CONFIGURE.md                  # after deploy: set up Access, log in, connect an agent
-├── projektor.version             # the release you're pinned to (e.g. v1.2.0)
+├── projektor.version             # "latest", or a release tag to pin (e.g. v1.2.0)
+├── scripts/wrangler-config.mjs   # generate wrangler.toml / check configs against the release
 ├── wrangler.toml.example         # illustrative config (the authoritative copy
 │                                 #   ships inside each release as wrangler.example.toml)
 ├── wrangler.toml                 # YOUR config — created on first deploy, fill in IDs (gitignored)
@@ -77,9 +78,9 @@ wrangler r2 bucket create projektor-files
 ### 2. Create your config
 
 ```bash
-# Pin a version, then run deploy once to fetch the artifact + scaffold wrangler.toml:
-gh release list -R TAJD/projektor          # find a real tag - releases are all v0.x so far
-echo "v0.3.7" > projektor.version          # pin whichever tag you picked
+# projektor.version defaults to "latest"; to pin, write a tag instead:
+gh release list -R TAJD/projektor          # find a real tag
+echo "v0.11.1" > projektor.version         # optional: pin whichever tag you picked
 PROJEKTOR_REPO=REPLACE_WITH_YOUR_GITHUB_USER/projektor ./deploy.sh
 # -> creates wrangler.toml from the template; edit it and fill the REPLACE_ values
 #    (D1 database_id, KV id, CF Access domain/audience, ADMIN_EMAILS), then re-run.
@@ -101,14 +102,16 @@ PROJEKTOR_REPO=REPLACE_WITH_YOUR_GITHUB_USER/projektor ./deploy.sh
 
 ## Automatic deploys (GitHub Actions)
 
-`deploy.yml` deploys the live `projektor-demo` instance (via the committed,
-binding-only `wrangler.demo.toml`) on every push to `main`, then hits the
-deployed URL and fails the job if it doesn't return 2xx. It also runs on PRs
-against `main` — as a dry-run only, needing no Cloudflare auth — so it can be a
+`deploy.yml` checks the configs against the release and dry-runs them on every PR,
+push and day. It **deploys only if you opt in**: set the repository *variables*
+`DEPLOY_CONFIG` (a committed, binding-only wrangler config for your instance, e.g. a
+copy of `wrangler.demo.toml` with your names) and `DEPLOY_URL` (health-checked after
+deploy; the job fails if it doesn't return 2xx). This repo sets neither: the public
+demo is deployed elsewhere. The PR run needs no Cloudflare auth, so it can be a
 required check gating merges (branch ruleset on `main`; see
 [CONTRIBUTING.md](./CONTRIBUTING.md) for what that ruleset does and its known
 limitation). Configure these **repository secrets** (Settings → Secrets and
-variables → Actions):
+variables → Actions) when you opt in:
 
 | Secret | How to get it |
 |--------|---------------|
@@ -116,7 +119,10 @@ variables → Actions):
 | `CLOUDFLARE_ACCOUNT_ID` | `wrangler whoami`, or the Cloudflare dashboard URL |
 | `PROJEKTOR_RELEASE_PAT` | only if `projektor` is a **private** repo — a fine-grained PAT with `Contents: Read` on it, so CI can download the release. For a public projektor, delete this and let the workflow use the built-in token. |
 
-To roll out a new projektor version: bump `projektor.version`, commit, push. CI deploys it.
+To roll out a new projektor version: with `latest`, re-run the workflow; with a pinned tag,
+bump `projektor.version`, commit, push. CI deploys it. CI also checks `wrangler.jsonc` and
+`wrangler.demo.toml` against the release's `wrangler.example.toml` on every PR and daily,
+so a release that needs new config fails here before a one-click user hits it.
 
 If you deploy your own instance instead of using the demo config, `deploy.yml` won't
 work as-is: `wrangler.toml` is gitignored by design (it holds your resource IDs), so CI

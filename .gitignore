@@ -4,3 +4,4 @@ vendor/
 
 # YOUR real config with resource IDs — never commit it.
 wrangler.toml
+.dev.vars
