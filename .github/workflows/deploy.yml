@@ -68,7 +68,9 @@ jobs:
         if: github.event_name == 'pull_request' || github.event_name == 'schedule' || vars.DEPLOY_CONFIG == ''
         run: |
           npx wrangler deploy --config wrangler.demo.toml --dry-run
-          npx wrangler deploy --config wrangler.jsonc --dry-run
+          # wrangler.jsonc's build.command (cf-build.sh) deploys for real unless told to
+          # only fetch the release.
+          PROJEKTOR_FETCH_ONLY=1 npx wrangler deploy --config wrangler.jsonc --dry-run
 
       - name: Migrate + deploy
         # Opt-in: set the repository variable DEPLOY_CONFIG to your committed,

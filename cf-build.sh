@@ -18,6 +18,14 @@
 # locally instead (same result, your own `wrangler login`).
 set -euo pipefail
 
+# Re-entry guard (PROJ-1073). wrangler.jsonc names this script as build.command, so the
+# `wrangler deploy` below runs it again, and that run would deploy again, and so on: the
+# one-click deploy recursed until it failed. The nested run has nothing to do.
+if [ -n "${PROJEKTOR_CF_BUILD_ACTIVE:-}" ]; then
+	exit 0
+fi
+export PROJEKTOR_CF_BUILD_ACTIVE=1
+
 REPO="${PROJEKTOR_REPO:-TAJD/projektor}"
 WRANGLER="${WRANGLER:-npx wrangler}"
 VERSION="${PROJEKTOR_VERSION:-$(cat projektor.version 2>/dev/null || echo latest)}"
@@ -36,6 +44,12 @@ else
 fi
 curl -fsSL -o /tmp/projektor.tar.gz "$ASSET"
 tar -xzf /tmp/projektor.tar.gz -C vendor
+
+# CI dry-runs this config without Cloudflare credentials: fetch the release only.
+if [ -n "${PROJEKTOR_FETCH_ONLY:-}" ]; then
+	echo "==> PROJEKTOR_FETCH_ONLY set: release fetched, not deploying"
+	exit 0
+fi
 
 echo "==> Deploying Worker (binds the resources Cloudflare provisioned)"
 $WRANGLER deploy --config wrangler.jsonc
