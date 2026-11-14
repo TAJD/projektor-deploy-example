@@ -102,14 +102,16 @@ PROJEKTOR_REPO=REPLACE_WITH_YOUR_GITHUB_USER/projektor ./deploy.sh
 
 ## Automatic deploys (GitHub Actions)
 
-`deploy.yml` deploys the live `projektor-demo` instance (via the committed,
-binding-only `wrangler.demo.toml`) on every push to `main`, then hits the
-deployed URL and fails the job if it doesn't return 2xx. It also runs on PRs
-against `main` — as a dry-run only, needing no Cloudflare auth — so it can be a
+`deploy.yml` checks the configs against the release and dry-runs them on every PR,
+push and day. It **deploys only if you opt in**: set the repository *variables*
+`DEPLOY_CONFIG` (a committed, binding-only wrangler config for your instance, e.g. a
+copy of `wrangler.demo.toml` with your names) and `DEPLOY_URL` (health-checked after
+deploy; the job fails if it doesn't return 2xx). This repo sets neither: the public
+demo is deployed elsewhere. The PR run needs no Cloudflare auth, so it can be a
 required check gating merges (branch ruleset on `main`; see
 [CONTRIBUTING.md](./CONTRIBUTING.md) for what that ruleset does and its known
 limitation). Configure these **repository secrets** (Settings → Secrets and
-variables → Actions):
+variables → Actions) when you opt in:
 
 | Secret | How to get it |
 |--------|---------------|

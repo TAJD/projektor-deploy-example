@@ -1,9 +1,9 @@
-# Committed config for the live projektor-demo instance (see PROJ-284). Unlike
-# wrangler.toml (gitignored — that's YOUR private config), this one is
-# binding-only and safe to commit: no resource IDs, no secrets. wrangler
-# resolves the existing projektor-demo D1/KV/R2 by name on every deploy.
+# Example of a committed, binding-only config for CI deploys (PROJ-284). Unlike
+# wrangler.toml (gitignored — that's YOUR private config), this one is safe to
+# commit: no resource IDs, no secrets. wrangler resolves D1/KV/R2 by name.
 #
-# Used by .github/workflows/deploy.yml for CI, and only for the demo instance.
+# deploy.yml dry-runs it on every run. It is deployed only if the DEPLOY_CONFIG
+# repository variable points at it; the live demo is deployed from elsewhere.
 # The gitignored wrangler.toml + deploy.sh/deploy-auto.sh path (for end users
 # deploying their own instance) is untouched.
 name = "projektor-demo"

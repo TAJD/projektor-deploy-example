@@ -1,7 +1,10 @@
 name: Deploy to Cloudflare
 
-# Deploys the pinned projektor release (see ./projektor.version) on every push to
-# main, or on demand. Bump projektor.version and push to roll out a new version.
+# Validates the configs against the projektor release (./projektor.version, "latest" by
+# default) on PRs, daily and on push. It deploys only when the repository variable
+# DEPLOY_CONFIG names a wrangler config (and DEPLOY_URL the URL to health-check). That is
+# opt-in so a fork can auto-deploy its own instance, while this repo, with neither set,
+# never overwrites the live demo, which TAJD/projektor-workspace deploys (PROJ-1073).
 #
 # Also runs on PRs targeting main (dry-run only, no Cloudflare auth needed) so
 # this job can be a required status check on main (see the branch ruleset) —
@@ -62,28 +65,29 @@ jobs:
         # Runs on PRs — compiles + checks bindings against wrangler.demo.toml
         # without uploading or needing Cloudflare auth, so this passes for
         # untrusted/fork PRs too.
-        if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+        if: github.event_name == 'pull_request' || github.event_name == 'schedule' || vars.DEPLOY_CONFIG == ''
         run: |
           npx wrangler deploy --config wrangler.demo.toml --dry-run
           npx wrangler deploy --config wrangler.jsonc --dry-run
 
       - name: Migrate + deploy
-        # wrangler.demo.toml is a committed, binding-only config for the
-        # projektor-demo instance (see PROJ-284) — unlike deploy.sh, it needs no
-        # gitignored wrangler.toml bootstrap step, so CI can run non-interactively.
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        # Opt-in: set the repository variable DEPLOY_CONFIG to your committed,
+        # binding-only wrangler config (e.g. a copy of wrangler.demo.toml renamed for
+        # your instance). Unset, nothing is deployed.
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.DEPLOY_CONFIG != ''
         run: |
           set -euo pipefail
-          npx wrangler d1 migrations apply DB --remote --config wrangler.demo.toml
-          npx wrangler deploy --config wrangler.demo.toml
+          npx wrangler d1 migrations apply DB --remote --config "$DEPLOY_CONFIG"
+          npx wrangler deploy --config "$DEPLOY_CONFIG"
         env:
+          DEPLOY_CONFIG: ${{ vars.DEPLOY_CONFIG }}
           # Cloudflare auth (see README for the correct token scopes — must include D1).
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Health check
         # Catch a broken deploy in CI instead of discovering it later (PROJ-280).
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.DEPLOY_URL != ''
         run: |
           set -euo pipefail
           code="$(curl -s -o /dev/null -w '%{http_code}' "$DEMO_URL")"
@@ -93,4 +97,4 @@ jobs:
             exit 1
           fi
         env:
-          DEMO_URL: https://projektor-demo.tajdickson.workers.dev/
+          DEMO_URL: ${{ vars.DEPLOY_URL }}
