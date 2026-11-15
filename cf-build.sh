@@ -13,15 +13,11 @@ VERSION="${PROJEKTOR_VERSION:-$(cat projektor.version 2>/dev/null || echo latest
 echo "==> Fetching projektor $VERSION from $REPO"
 rm -rf vendor && mkdir -p vendor
 if [ "$VERSION" = "latest" ]; then
-	# 'latest' has no fixed filename, so resolve the asset via the API.
-	ASSET="$(curl -sL "https://api.github.com/repos/$REPO/releases/latest" \
-		| grep -oE '"browser_download_url": *"[^"]*projektor-[^"]*\.tar\.gz"' \
-		| head -1 | sed -E 's/.*"(https[^"]*)".*/\1/')"
-	: "${ASSET:?could not resolve latest release asset URL}"
-else
-	ASSET="https://github.com/$REPO/releases/download/$VERSION/projektor-$VERSION.tar.gz"
+	VERSION="$(curl -fsSIL -o /dev/null -w '%{url_effective}' "https://github.com/$REPO/releases/latest")"
+	VERSION="${VERSION##*/}"
+	echo "==> latest is $VERSION"
 fi
 TMP="$(mktemp -d)"
-curl -fsSL -o "$TMP/projektor.tar.gz" "$ASSET"
+curl -fsSL -o "$TMP/projektor.tar.gz" "https://github.com/$REPO/releases/download/$VERSION/projektor-$VERSION.tar.gz"
 tar -xzf "$TMP/projektor.tar.gz" -C vendor
 rm -rf "$TMP"
