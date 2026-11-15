@@ -3,7 +3,7 @@
   "private": true,
   "description": "Config-only deploy of projektor from a release artifact",
   "scripts": {
-    "deploy": "./deploy.sh"
+    "deploy": "bash ./cf-deploy.sh"
   },
   "devDependencies": {
     "jsonc-parser": "^3.3.1",
