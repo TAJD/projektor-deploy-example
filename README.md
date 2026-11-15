@@ -25,9 +25,10 @@ After any of them, **configure Cloudflare Access** so you can log in — see [CO
 
 Cloudflare reads [`wrangler.jsonc`](./wrangler.jsonc) (binding-only — no resource IDs),
 provisions a D1 database, two KV namespaces (cache and OAuth), an R2 bucket and the
-rate-limiter Durable Object, then runs [`cf-build.sh`](./cf-build.sh): it downloads the
-projektor release named in `projektor.version` (`latest` by default), deploys the Worker, applies D1 migrations, and generates
-`JWT_SECRET`. Fill in `ADMIN_EMAILS` on the setup page; that email becomes the owner
+rate-limiter Durable Object, then runs `npm run deploy` ([`cf-deploy.sh`](./cf-deploy.sh)):
+it deploys the Worker (whose build step, [`cf-build.sh`](./cf-build.sh), downloads the
+projektor release named in `projektor.version`, `latest` by default), applies D1
+migrations, and generates `JWT_SECRET`. Fill in `ADMIN_EMAILS` on the setup page; that email becomes the owner
 once you log in.
 
 > The one-click build needs wrangler to be authenticated in Cloudflare's build
